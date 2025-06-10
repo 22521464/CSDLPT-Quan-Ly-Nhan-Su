@@ -1,0 +1,9 @@
+{
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.referencedLibraries": [
+        "/home/parallels/berkeleydb/lib/je-18.3.12.jar",
+        "/home/parallels/berkeleydb/lib/json-20210307.jar"
+    ]
+}
