@@ -82,4 +82,3 @@ java hn.LocalClientHN
 - Địa chỉ IP và port trong code cần đúng với máy chủ thực tế bạn đang sử dụng.
 
 ---
-**(Trong ngoặc là vị trí máy thực hiện: HCM hoặc HN)**
