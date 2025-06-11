@@ -1,3 +1,5 @@
+/* Chay chung voi file CentralServer & Main_Client */
+
 package hcm;
 
 import Model.*;

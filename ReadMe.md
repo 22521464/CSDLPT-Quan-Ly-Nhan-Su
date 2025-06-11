@@ -1,85 +1,214 @@
-# HƯỚNG DẪN CHẠY HỆ THỐNG PHÂN TÁN QUẢN LÝ NHÂN SỰ
+# HỆ THỐNG PHÂN TÁN QUẢN LÝ NHÂN SỰ
 
-## **Bước 0: Khởi tạo dữ liệu ban đầu (bắt buộc)**
-Trước khi chạy hệ thống, hãy chạy các file khởi tạo dữ liệu mẫu cho từng chi nhánh:
 
-**Trên máy HCM:**
+**Hướng dẫn cài đặt, triển khai và sử dụng hệ thống**
+
+
+## THÔNG TIN ĐỒ ÁN
+
+
+- **Trường**: Trường Đại học Công nghệ Thông tin - Đại học Quốc Gia TPHCM
+- **Khoa**: Hệ thống Thông tin
+- **Môn học**: Hệ Cơ Sở Dữ Liệu Phân Tán - IS211
+- **Nhóm sinh viên thực hiện**:
+ - Phạm Hồng Trà – MSSV: 22521495
+ - Giang Mỹ Tiên – MSSV: 22521464
+ - Huỳnh Ngọc Trang – MSSV: 22521510
+
+
+## GIỚI THIỆU HỆ THỐNG
+
+
+Hệ thống mô phỏng quản lý nhân sự tại công ty có 2 chi nhánh (HCM, HN), được triển khai trên 2 máy ảo sử dụng cơ sở dữ liệu phân tán với:
+
+
+- **Phân mảnh ngang** dữ liệu nhân viên và chấm công
+- **Nhân bản (replication)** dữ liệu chi nhánh và phòng ban
+- **Cơ sở dữ liệu**: Berkeley DB Java Edition
+- **Ngôn ngữ**: Java (JDK 11 trở lên)
+
+
+## YÊU CẦU CÀI ĐẶT
+
+
+### Cài đặt trên mỗi máy ảo:
+
+
+- Java JDK 11+
+- Berkeley DB Java Edition (JE)
+- Git (để clone mã nguồn nếu cần)
+- IDE tùy chọn (Eclipse / IntelliJ / VS Code) hoặc biên dịch bằng dòng lệnh
+
+
+### Cấu hình mạng:
+
+
+- Cấu hình máy ảo sử dụng **Bridge Adapter (cầu nối WiFi)** để các máy có thể giao tiếp với nhau qua mạng LAN.
+- Đảm bảo các cổng mạng sử dụng không bị chặn bởi firewall (ví dụ: `8888`, `9999`, ...).
+
+
+## CẤU TRÚC THƯ MỤC
+
+
+```
+├── src/
+│   ├── hcm/
+│   ├── hn/
+│   └── model/
+├── lib/         ← chứa các file .jar của Berkeley DB, JSON,...
+├── bin/         ← thư mục chứa file đã biên dịch
+```
+
+
+## KHỞI TẠO DỮ LIỆU (BẮT BUỘC TRƯỚC TIÊN)
+
+
+### Trên máy HCM:
+
+
 ```bash
 java hcm.InitDataHCM
 ```
 
-**Trên máy HN:**
+
+### Trên máy HN:
+
+
 ```bash
 java hn.InitDataHN
 ```
 
----
 
-## **Thứ tự chạy các file**
+## TRIỂN KHAI HỆ THỐNG
 
-### **1. Chạy CentralServer (máy HCM)**
+
+### 1. Chạy CentralServer (trên máy HCM)
+
+
 ```bash
 java hcm.CentralServer
 ```
-- Khởi động máy chủ tổng hợp dữ liệu toàn hệ thống.
 
----
 
-### **2. Đồng bộ dữ liệu từ các chi nhánh lên CentralServer**
+> **Chức năng**: Máy chủ trung tâm nhận dữ liệu đồng bộ từ các chi nhánh và cung cấp giao diện truy vấn tập trung.
 
-**Trên máy HCM:**
+
+### 2. Đồng bộ dữ liệu từ chi nhánh lên CentralServer
+
+
+- **Trên máy HCM**:
+
+
 ```bash
 java hcm.LocalClientHCM
 ```
 
-**Trên máy HN:**
+
+- **Trên máy HN**:
+
+
 ```bash
 java hn.LocalClientHN
 ```
-- Hai lệnh này sẽ gửi toàn bộ dữ liệu nhân viên, chấm công, chi nhánh, phòng ban từ từng chi nhánh lên CentralServer.
 
----
 
-### **3. Chạy LocalServer và giao diện người dùng**
+> **Chức năng**: Gửi dữ liệu từ chi nhánh (NHÂN VIÊN, CHẤM CÔNG, PHÒNG BAN, CHI NHÁNH) lên CentralServer qua kết nối mạng.
 
-#### **Trên máy HCM:**
-- **Chạy LocalServerHCM:**
-    ```bash
-    java hcm.LocalServerHCM
-    ```
-- **Chạy giao diện người dùng:**
-    - Nếu muốn truy cập dữ liệu tổng hợp (CentralServer):
-        ```bash
-        java hcm.Main_final
-        ```
-    - Nếu chỉ muốn truy cập dữ liệu cục bộ HCM:
-        ```bash
-        java hcm.Main
-        ```
 
-#### **Trên máy HN:**
-- **Chạy LocalServerHN:**
-    ```bash
-    java hn.LocalServerHN
-    ```
-- **Chạy giao diện người dùng:**
-    - Nếu muốn truy cập dữ liệu tổng hợp (CentralServer):
-        ```bash
-        java hn.Main_final
-        ```
-    - Nếu chỉ muốn truy cập dữ liệu cục bộ HN:
-        ```bash
-        java hn.Main
-        ```
+### 3. Chạy LocalServer và giao diện người dùng
 
----
 
-## **Ghi chú**
-- **Luôn chạy các file InitData trước khi chạy hệ thống lần đầu hoặc khi cần làm mới dữ liệu.**
-- Các bước trên cần thực hiện đúng thứ tự để đảm bảo dữ liệu được đồng bộ và truy cập chính xác.
-- Nếu cập nhật dữ liệu ở chi nhánh, hãy chạy lại LocalClientHCM hoặc LocalClientHN để đồng bộ lên CentralServer.
-- Đảm bảo các file cấu hình, thư viện và biến môi trường Java đã được thiết lập đúng.
-- Địa chỉ IP và port trong code cần đúng với máy chủ thực tế bạn đang sử dụng.
+#### Trên máy HCM:
 
----
-**(Trong ngoặc là vị trí máy thực hiện: HCM hoặc HN)**
+
+- **LocalServer HCM**:
+
+
+```bash
+java hcm.LocalServerHCM
+```
+
+
+- **Main_Client** – giao diện truy vấn dữ liệu tổng hợp từ CentralServer:
+
+
+```bash
+java hcm.Main_Client
+```
+
+
+**Chức năng:**
+
+
+- `adminhcm`: xem toàn bộ dữ liệu các chi nhánh
+- `staffhcm`: xem thông tin chi nhánh, phòng ban
+
+
+- **Main_Server** – giao diện thao tác dữ liệu cục bộ với LocalServer:
+
+
+```bash
+java hcm.Main_Server
+```
+
+
+**Chức năng:**
+
+
+- `adminhcm`: xem/thêm Nhân viên, Chấm công (chi nhánh HCM)
+- `staffhcm`: xem và thêm chấm công của nhân viên HCM
+
+
+#### Trên máy HN:
+
+
+- **LocalServer HN**:
+
+
+```bash
+java hn.LocalServerHN
+```
+
+
+- **Main_Client**:
+
+
+```bash
+java hn.Main_Client
+```
+
+
+**Chức năng:**
+
+
+- `adminhn` và `staffhn`: xem chi nhánh, phòng ban (dữ liệu dùng chung)
+
+
+- **Main_Server**:
+
+
+```bash
+java hn.Main_Server
+```
+
+
+**Chức năng:**
+
+
+- `adminhn`: xem/thêm Nhân viên, Chấm công (chi nhánh HN)
+- `staffhn`: xem và thêm chấm công của nhân viên HN
+
+
+## GHI CHÚ QUAN TRỌNG
+
+
+- **Luôn chạy `InitData` trước lần chạy đầu tiên** hoặc khi cần reset dữ liệu.
+- Sau khi cập nhật dữ liệu cục bộ, cần chạy lại `LocalClientHCM` hoặc `LocalClientHN` để đồng bộ với CentralServer.
+- Cấu hình địa chỉ IP và port phải chính xác giữa các máy để hệ thống hoạt động ổn định.
+- Hệ thống sử dụng **Berkeley DB Java Edition**, một cơ sở dữ liệu NoSQL dạng key-value với khả năng mở rộng cao.
+
+
+## LIÊN HỆ – HỖ TRỢ
+
+
+Vui lòng liên hệ nhóm thực hiện để được hướng dẫn thêm về cách chạy hệ thống, xử lý lỗi hoặc mở rộng tính năng.

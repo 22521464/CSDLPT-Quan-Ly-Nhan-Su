@@ -2,6 +2,7 @@ package Model;
 
 import com.sleepycat.je.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DataService {
@@ -77,6 +78,7 @@ public class DataService {
     public boolean addNhanVien(NhanVien nv) throws Exception {
         if (!AccessControl.canAdd("NHANVIEN", userRole, nv.getMaCN())) return false;
         Database db = dbManager.getDatabase("NHANVIEN_" + nv.getMaCN());
+        System.out.println("Đang truy xuất database: " + db);
         DatabaseEntry key = new DatabaseEntry(nv.getMaNV().getBytes("UTF-8"));
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);

@@ -1,3 +1,5 @@
+/* Chay chung voi file Main_Server */
+
 package hn;
 
 import Model.*;
@@ -14,6 +16,11 @@ public class LocalServerHN {
             BerkeleyDBManager dbManager = new BerkeleyDBManager();
             dbManager.open("data_hn"); // Thư mục riêng cho dữ liệu HN
 
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down server, closing DB...");
+                dbManager.close();
+            }));
+            
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 new Thread(() -> handleClient(clientSocket, dbManager)).start();
@@ -26,7 +33,7 @@ public class LocalServerHN {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
         ) {
-            DataService dataService = new DataService(dbManager, null);
+            DataService dataService = new DataService(dbManager, AccessLevel.ADMIN_HCM);
             Account currentAccount = null;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -136,6 +143,36 @@ public class LocalServerHN {
                         }
                     } else {
                         out.println("Bạn không có quyền thêm chấm công.");
+                    }
+                } else if ("ADD".equalsIgnoreCase(action) && "CHINHANH".equalsIgnoreCase(table)) {
+                    // Chỉ adminHCM được thêm chi nhánh
+                    if (currentAccount.getRole() == AccessLevel.ADMIN_HCM) {
+                        // param: maCN|tenCN|diaChi
+                        String[] fields = param.split("\\|");
+                        if (fields.length == 3) {
+                            ChiNhanh cn = new ChiNhanh(fields[0], fields[1], fields[2]);
+                            dataService.addChiNhanh(cn);
+                            out.println("Thêm chi nhánh thành công.");
+                        } else {
+                            out.println("Dữ liệu chi nhánh không hợp lệ.");
+                        }
+                    } else {
+                        out.println("Bạn không có quyền thêm chi nhánh.");
+                    }
+                } else if ("ADD".equalsIgnoreCase(action) && "PHONGBAN".equalsIgnoreCase(table)) {
+                    // Chỉ adminHCM được thêm phòng ban
+                    if (currentAccount.getRole() == AccessLevel.ADMIN_HCM) {
+                        // param: maPB|tenPB
+                        String[] fields = param.split("\\|");
+                        if (fields.length == 2) {
+                            PhongBan pb = new PhongBan(fields[0], fields[1]);
+                            dataService.addPhongBan(pb);
+                            out.println("Thêm phòng ban thành công.");
+                        } else {
+                            out.println("Dữ liệu phòng ban không hợp lệ.");
+                        }
+                    } else {
+                        out.println("Bạn không có quyền thêm phòng ban.");
                     }
                 } else {
                     out.println("Lệnh không hợp lệ hoặc chưa hỗ trợ.");

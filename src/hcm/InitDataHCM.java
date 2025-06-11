@@ -54,8 +54,6 @@ public class InitDataHCM {
         dataService.addChamCong(new ChamCong("CC26", "NV018", sdf.parse("2025-06-06"), "08:25", "17:30", "OK"));
         dataService.addChamCong(new ChamCong("CC28", "NV020", sdf.parse("2025-06-06"), "08:27", "17:30", "OK"));
 
-        List<NhanVien> list = dataService.getNhanVienList("HCM");
-        System.out.println("Số lượng nhân viên HCM: " + list.size());
         dbManager.close();
         System.out.println("Khởi tạo dữ liệu HCM thành công!");
     }

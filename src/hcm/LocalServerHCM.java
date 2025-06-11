@@ -1,3 +1,4 @@
+/* Chay chung voi file Main_Server */
 package hcm;
 
 import Model.*;
@@ -14,6 +15,11 @@ public class LocalServerHCM {
             BerkeleyDBManager dbManager = new BerkeleyDBManager();
             dbManager.open("data_hcm"); // Thư mục riêng cho dữ liệu HCM
 
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutting down server, closing DB...");
+                dbManager.close();
+            }));
+            
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 new Thread(() -> handleClient(clientSocket, dbManager)).start();
@@ -26,7 +32,7 @@ public class LocalServerHCM {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)
         ) {
-            DataService dataService = new DataService(dbManager, null);
+            DataService dataService = new DataService(dbManager, AccessLevel.ADMIN_HCM);
             Account currentAccount = null;
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -104,7 +110,7 @@ public class LocalServerHCM {
                 } else if ("ADD".equalsIgnoreCase(action) && "NHANVIEN".equalsIgnoreCase(table)) {
                     // Chỉ cho phép adminHCM
                     if (currentAccount.getRole() == AccessLevel.ADMIN_HCM) {
-                        // param: maNV|hoTen|ngaySinh|sdt|chucVu|luong|maPB|maCN
+                        // param: maNV|hoTen|ngaySinh|sdt|chucVu|luongCoBan|maPB|maCN
                         String[] fields = param.split("\\|");
                         if (fields.length == 8) {
                             NhanVien nv = new NhanVien(
@@ -136,6 +142,36 @@ public class LocalServerHCM {
                         }
                     } else {
                         out.println("Bạn không có quyền thêm chấm công.");
+                    }
+                } else if ("ADD".equalsIgnoreCase(action) && "CHINHANH".equalsIgnoreCase(table)) {
+                    // Chỉ adminHCM được thêm chi nhánh
+                    if (currentAccount.getRole() == AccessLevel.ADMIN_HCM) {
+                        // param: maCN|tenCN|diaChi
+                        String[] fields = param.split("\\|");
+                        if (fields.length == 3) {
+                            ChiNhanh cn = new ChiNhanh(fields[0], fields[1], fields[2]);
+                            dataService.addChiNhanh(cn);
+                            out.println("Thêm chi nhánh thành công.");
+                        } else {
+                            out.println("Dữ liệu chi nhánh không hợp lệ.");
+                        }
+                    } else {
+                        out.println("Bạn không có quyền thêm chi nhánh.");
+                    }
+                } else if ("ADD".equalsIgnoreCase(action) && "PHONGBAN".equalsIgnoreCase(table)) {
+                    // Chỉ adminHCM được thêm phòng ban
+                    if (currentAccount.getRole() == AccessLevel.ADMIN_HCM) {
+                        // param: maPB|tenPB
+                        String[] fields = param.split("\\|");
+                        if (fields.length == 2) {
+                            PhongBan pb = new PhongBan(fields[0], fields[1]);
+                            dataService.addPhongBan(pb);
+                            out.println("Thêm phòng ban thành công.");
+                        } else {
+                            out.println("Dữ liệu phòng ban không hợp lệ.");
+                        }
+                    } else {
+                        out.println("Bạn không có quyền thêm phòng ban.");
                     }
                 } else {
                     out.println("Lệnh không hợp lệ hoặc chưa hỗ trợ.");

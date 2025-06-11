@@ -52,11 +52,5 @@ public class InitDataHN {
 
         dbManager.close();
         System.out.println("Khởi tạo dữ liệu HN thành công!");
-        List<ChiNhanh> list = dataService.getChiNhanhList();
-        System.out.println("Số lượng chi nhánh hiện có: " + list.size());
-        for (ChiNhanh cn : list) {
-            System.out.println(cn.getMaCN() + " - " + cn.getTenCN());
-        }
-        dbManager.close();
     }
 }

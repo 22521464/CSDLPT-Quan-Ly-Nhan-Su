@@ -1,3 +1,5 @@
+/* Chay chung voi file LocalClientHCM & Main_Client */
+
 package hcm;
 
 import Model.*;
@@ -157,6 +159,69 @@ public class CentralServer {
                     } finally {
                         if (cursor != null) cursor.close();
                     }
+                } else if (request.startsWith("BAOCAO")) {
+                    String[] parts = request.split(" ");
+                    if (parts.length != 3) {
+                        out.println("Lệnh BAOCAO không hợp lệ. Định dạng: BAOCAO <thang> <nam>");
+                        continue;
+                    }
+                    int thang, nam;
+                    try {
+                        thang = Integer.parseInt(parts[1]);
+                        nam = Integer.parseInt(parts[2]);
+                    } catch (NumberFormatException e) {
+                        out.println("Tháng hoặc năm không hợp lệ.");
+                        continue;
+                    }
+
+
+                    double tongGio = 0;
+                    SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm");
+                    SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
+
+
+                    // Lặp qua tất cả database chấm công của các chi nhánh
+                    for (String location : new String[]{"HCM", "HN"}) {
+                        Database db = dbManager.getDatabase("CHAMCONG_" + location);
+                        if (db == null) {
+                            continue; // bỏ qua nếu chi nhánh chưa có dữ liệu
+                        }
+                        Cursor cursor = null;
+                        try {
+                            cursor = db.openCursor(null, null);
+                            DatabaseEntry foundKey = new DatabaseEntry();
+                            DatabaseEntry foundData = new DatabaseEntry();
+
+
+                            while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                                ByteArrayInputStream bis = new ByteArrayInputStream(foundData.getData());
+                                ObjectInputStream ois = new ObjectInputStream(bis);
+                                ChamCong cc = (ChamCong) ois.readObject();
+                                ois.close();
+
+
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(cc.getNgayChamCong());
+                                int thangCC = cal.get(Calendar.MONTH) + 1;
+                                int namCC = cal.get(Calendar.YEAR);
+
+
+                                if (thangCC == thang && namCC == nam) {
+                                    try {
+                                        Date vao = sdfTime.parse(cc.getGioVao());
+                                        Date ra = sdfTime.parse(cc.getGioRa());
+                                        long diffMillis = ra.getTime() - vao.getTime();
+                                        tongGio += diffMillis / (1000.0 * 60 * 60);  // giờ
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        } finally {
+                            if (cursor != null) cursor.close();
+                        }
+                    }
+                    out.println("Tổng số giờ làm trong tháng " + thang + "/" + nam + ": " + tongGio + " giờ");
                 } else {
                     out.println("Lệnh không hợp lệ.");
                 }
