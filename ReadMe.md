@@ -9,7 +9,7 @@
 
 - **Trường**: Trường Đại học Công nghệ Thông tin - Đại học Quốc Gia TPHCM
 - **Khoa**: Hệ thống Thông tin
-- **Môn học**: Hệ Cơ Sở Dữ Liệu Phân Tán - IS211
+- **Môn học**: Cơ Sở Dữ Liệu Phân Tán - IS211
 - **Nhóm sinh viên thực hiện**:
  - Phạm Hồng Trà – MSSV: 22521495
  - Giang Mỹ Tiên – MSSV: 22521464
